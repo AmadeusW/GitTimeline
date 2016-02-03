@@ -150,7 +150,7 @@ namespace DownloaderApp
                 pullData.submitter = pull.User.Login;
                 pullData.sha = pull.Head.Sha;
                 pullData.branch = pull.Head.Label;
-                Console.WriteLine(pullData);
+                Console.WriteLine($"{pull.Number} - {pull.Title}");
                 var prCommits = await _gitHub.PullRequest.Commits(_owner, _repo, pull.Number);
                 List<ExpandoObject> myCommitData = new List<ExpandoObject>();
                 foreach (var prCommit in prCommits)
@@ -190,7 +190,7 @@ namespace DownloaderApp
                 issueData.createdAt = issue.CreatedAt;
                 issueData.title = issue.Title;
                 issueData.submitter = issue.User.Login;
-                Console.WriteLine(issueData);
+                Console.WriteLine($"{issue.Number} - {issue.Title}");
                 var relatedIssues = new List<string>();
                 var issueDiscussion = await _gitHub.Issue.Comment.GetAllForIssue(_owner, _repo, issue.Number);
                 foreach (var discussion in issueDiscussion)
