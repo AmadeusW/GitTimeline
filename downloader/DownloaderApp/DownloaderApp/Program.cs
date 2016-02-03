@@ -151,24 +151,13 @@ namespace DownloaderApp
                 pullData.sha = pull.Head.Sha;
                 pullData.branch = pull.Head.Label;
                 Console.WriteLine(pullData);
-                var relatedIssues = new List<string>();
-                var prDiscussion = await _gitHub.Issue.Comment.GetAllForIssue(_owner, _repo, pull.Number);
-                foreach (var discussion in prDiscussion)
-                {
-                    var matchingIssues = _issueRegex.Match(discussion.Body);
-                    foreach (var issueNumber in matchingIssues.Captures)
-                    {
-                        relatedIssues.Add(issueNumber.ToString());
-                    }
-                }
-                pullData.relatedIssues = relatedIssues;
                 var prCommits = await _gitHub.PullRequest.Commits(_owner, _repo, pull.Number);
                 List<ExpandoObject> myCommitData = new List<ExpandoObject>();
                 foreach (var prCommit in prCommits)
                 {
                     dynamic commitData = new ExpandoObject();
                     var commit = prCommit.Commit;
-                    commitData.sha = commit.Sha;
+                    commitData.sha = prCommit.Sha;
                     commitData.message = commit.Message;
                     commitData.createdAt = commit.Committer.Date;
                     commitData.committer = commit.Committer.Name;
@@ -207,9 +196,12 @@ namespace DownloaderApp
                 foreach (var discussion in issueDiscussion)
                 {
                     var matchingIssues = _issueRegex.Match(discussion.Body);
-                    foreach (var issueNumber in matchingIssues.Captures)
+                    if (matchingIssues?.Groups?.Count >= 2)
                     {
-                        relatedIssues.Add(issueNumber.ToString());
+                        foreach (var issueNumber in matchingIssues.Groups[1].Captures)
+                        {
+                            relatedIssues.Add(issueNumber.ToString());
+                        }
                     }
                 }
                 issueData.relatedIssues = relatedIssues;
