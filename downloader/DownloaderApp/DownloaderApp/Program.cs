@@ -150,6 +150,7 @@ namespace DownloaderApp
                 pullData.submitter = pull.User.Login;
                 pullData.sha = pull.Head.Sha;
                 pullData.branch = pull.Head.Label;
+                pullData.title = pull.Title;
                 Console.WriteLine($"{pull.Number} - {pull.Title}");
                 var prCommits = await _gitHub.PullRequest.Commits(_owner, _repo, pull.Number);
                 List<ExpandoObject> myCommitData = new List<ExpandoObject>();
@@ -191,6 +192,7 @@ namespace DownloaderApp
                 issueData.createdAt = issue.CreatedAt;
                 issueData.title = issue.Title;
                 issueData.submitter = issue.User.Login;
+                issueData.body = issue.Body;
                 Console.WriteLine($"{issue.Number} - {issue.Title}");
                 // Add linked issues: from title
                 if (!String.IsNullOrEmpty(issue.Title))
