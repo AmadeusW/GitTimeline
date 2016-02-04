@@ -185,23 +185,56 @@ namespace DownloaderApp
             foreach (var issue in issues)
             {
                 dynamic issueData = new ExpandoObject();
+                var relatedIssues = new List<string>();
                 issueData.htmlUrl = issue.HtmlUrl;
                 issueData.number = issue.Number;
                 issueData.createdAt = issue.CreatedAt;
                 issueData.title = issue.Title;
                 issueData.submitter = issue.User.Login;
                 Console.WriteLine($"{issue.Number} - {issue.Title}");
-                var relatedIssues = new List<string>();
+                // Add linked issues: from title
+                if (!String.IsNullOrEmpty(issue.Title))
+                {
+                    var matchingIssues = _issueRegex.Matches(issue.Title);
+                    foreach (var m in matchingIssues)
+                    {
+                        try
+                        {
+                            var match = ((Match)m).Groups[1].Captures[0];
+                            relatedIssues.Add(match.ToString());
+                        }
+                        catch { }
+                    }
+                }
+                // Add linked issues: from body
+                if (!String.IsNullOrEmpty(issue.Body))
+                {
+                    var matchingIssues = _issueRegex.Matches(issue.Body);
+                    foreach (var m in matchingIssues)
+                    {
+                        try
+                        {
+                            var match = ((Match)m).Groups[1].Captures[0];
+                            relatedIssues.Add(match.ToString());
+                        }
+                        catch { }
+                    }
+                }
+                // Add linked issues: from comments
                 var issueDiscussion = await _gitHub.Issue.Comment.GetAllForIssue(_owner, _repo, issue.Number);
                 foreach (var discussion in issueDiscussion)
                 {
-                    var matchingIssues = _issueRegex.Match(discussion.Body);
-                    if (matchingIssues?.Groups?.Count >= 2)
+                    if (String.IsNullOrEmpty(discussion.Body))
+                        continue;
+                    var matchingCommentIssues = _issueRegex.Matches(discussion.Body);
+                    foreach (var m in matchingCommentIssues)
                     {
-                        foreach (var issueNumber in matchingIssues.Groups[1].Captures)
+                        try
                         {
-                            relatedIssues.Add(issueNumber.ToString());
+                            var match = ((Match)m).Groups[1].Captures[0];
+                            relatedIssues.Add(match.ToString());
                         }
+                        catch { }
                     }
                 }
                 issueData.relatedIssues = relatedIssues;
